@@ -1,24 +1,23 @@
 /* ================= CONFIG ================= */
 
-// Auto detect environment
 const API =
   window.location.hostname === "127.0.0.1" ||
   window.location.hostname === "localhost"
     ? "http://127.0.0.1:5000"
-    : "https://ai-powered02.vercel.app/api"; 
-    // 🔴 CHANGE THIS to your real Vercel URL
+    : "https://ai-powered03.vercel.app";
 
 /* ================= PAGE NAV ================= */
+
 function showPage(page) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById(page).classList.add("active");
 }
 
 /* ================= EMAIL ================= */
+
 async function generateEmail() {
   try {
     const prompt = document.getElementById("emailPrompt").value.trim();
-
     if (!prompt) return alert("Please enter a prompt");
 
     const res = await fetch(`${API}/generate-email`, {
@@ -30,7 +29,7 @@ async function generateEmail() {
     const data = await res.json();
 
     document.getElementById("emailBox").innerText =
-      data.email || "No response";
+      data.email || data.error || "No response";
 
   } catch (err) {
     console.error(err);
@@ -38,7 +37,8 @@ async function generateEmail() {
   }
 }
 
-/* ================= CRM - SAVE LEAD ================= */
+/* ================= CRM ================= */
+
 async function saveLead() {
   try {
     const name = document.getElementById("leadName").value.trim();
@@ -65,6 +65,7 @@ async function saveLead() {
 }
 
 /* ================= LOAD LEADS ================= */
+
 async function loadLeads() {
   try {
     const res = await fetch(`${API}/get-leads`);
@@ -77,13 +78,15 @@ async function loadLeads() {
       return;
     }
 
-    board.innerHTML = data.leads.map(l => `
-      <p>
-        <b>${l.name || "-"}</b> |
-        ${l.company || "-"} |
-        ${l.status || "New"}
-      </p>
-    `).join("");
+    board.innerHTML = data.leads
+      .map(l => `
+        <p>
+          <b>${l.name || "-"}</b> |
+          ${l.company || "-"} |
+          ${l.status || "New"}
+        </p>
+      `)
+      .join("");
 
   } catch (err) {
     console.error("Load Leads Error:", err);
@@ -91,6 +94,7 @@ async function loadLeads() {
 }
 
 /* ================= REPORT ================= */
+
 window.generateReport = async function () {
 
   const topic = document.getElementById("topic").value.trim();
@@ -113,7 +117,7 @@ window.generateReport = async function () {
     const data = await res.json();
 
     document.getElementById("reportBox").innerText =
-      data.report || "No response";
+      data.report || data.error || "No response";
 
   } catch (err) {
     console.log(err);
@@ -121,18 +125,8 @@ window.generateReport = async function () {
   }
 };
 
-/* ================= QUICK REPORT ================= */
-function salesReport() {
-  document.getElementById("topic").value = "Sales Report";
-  generateReport();
-}
+/* ================= CHAT (FINAL FIXED) ================= */
 
-function hrReport() {
-  document.getElementById("topic").value = "HR Report";
-  generateReport();
-}
-
-/* ================= CHAT ================= */
 window.sendChat = async function () {
 
   const input = document.getElementById("chatMsg");
@@ -141,6 +135,7 @@ window.sendChat = async function () {
   const message = input.value.trim();
   if (!message) return;
 
+  // show user message
   box.innerHTML += `<div><b>You:</b> ${message}</div>`;
   input.value = "";
   box.scrollTop = box.scrollHeight;
@@ -152,9 +147,21 @@ window.sendChat = async function () {
       body: JSON.stringify({ message })
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
-    box.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`;
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { reply: text };
+    }
+
+    if (!res.ok) {
+      box.innerHTML += `<div style="color:red;"><b>Error:</b> ${data.error || text}</div>`;
+      return;
+    }
+
+    box.innerHTML += `<div><b>AI:</b> ${data.reply || "No response"}</div>`;
     box.scrollTop = box.scrollHeight;
 
   } catch (err) {
@@ -164,6 +171,7 @@ window.sendChat = async function () {
 };
 
 /* ================= INIT ================= */
+
 window.onload = function () {
   loadLeads();
-}
+};

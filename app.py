@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import requests
 import os
+print(os.getcwd())
 
 load_dotenv()
 
@@ -73,12 +74,15 @@ def ask_ai(prompt):
             timeout=20
         )
 
+        if response.status_code != 200:
+            return f"Groq Error: {response.text}"
+
         data = response.json()
-        return data["choices"][0]["message"]["content"]
+
+        return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
     except Exception as e:
         return f"AI Error: {str(e)}"
-
 # =========================
 # PAGES
 # =========================
@@ -115,8 +119,6 @@ def ai_chat():
 # =========================
 @app.route("/login", methods=["POST"])
 def login_post():
-    return render_template("auth.html")
-
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -230,22 +232,31 @@ def get_reports():
 # =========================
 # CHAT
 # =========================
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    data = request.get_json()
-    msg = data.get("message")
+    try:
+        data = request.get_json()
 
-    reply = ask_ai(msg)
+        if not data or "message" not in data:
+            return jsonify({"error": "Message missing"}), 400
 
-    db.session.add(ChatHistory(
-        message=msg,
-        reply=reply
-    ))
+        msg = data["message"]
 
-    db.session.commit()
+        reply = ask_ai(msg)
 
-    return jsonify({"reply": reply})
+        db.session.add(ChatHistory(
+            message=msg,
+            reply=reply
+        ))
+        db.session.commit()
+
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        print("CHAT ERROR:", e)
+        return jsonify({"error": "Chat failed"}), 500
 
 # =========================
 # STATS
@@ -263,11 +274,13 @@ def stats():
 # =========================
 # INIT DB
 # =========================
-with app.app_context():
-    db.create_all()
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
+    app.run(debug=True)
 
 # =========================
 # RUN
 # =========================
-if __name__ == "__main__":
-    app.run(debug=True)
+
