@@ -4,7 +4,7 @@ const API =
   window.location.hostname === "127.0.0.1" ||
   window.location.hostname === "localhost"
     ? "http://127.0.0.1:5000"
-    : "https://ai-powered03.vercel.app";
+    : "https://ai-powered11.vercel.app";
 
 /* ================= PAGE NAV ================= */
 
