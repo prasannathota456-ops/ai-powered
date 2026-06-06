@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports Dashboard</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-slate-950 text-white">
+
+<!-- ================= HEADER ================= -->
+<div class="max-w-5xl mx-auto p-6">
+
+    <h1 class="text-3xl font-bold text-cyan-400 mb-6">
+        📊 AI Reports Dashboard
+    </h1>
+
+    <!-- ================= INPUT SECTION ================= -->
+    <div class="bg-slate-900 p-4 rounded-xl shadow mb-6">
+
+        <label class="block text-sm mb-2">Topic</label>
+        <input id="topic"
+               class="w-full p-3 rounded bg-slate-800 text-white outline-none mb-3"
+               placeholder="Enter topic..." />
+
+        <label class="block text-sm mb-2">Category</label>
+        <select id="category"
+                class="w-full p-3 rounded bg-slate-800 text-white mb-4">
+            <option>Business</option>
+            <option>Technology</option>
+            <option>Marketing</option>
+            <option>Finance</option>
+            <option>AI</option>
+        </select>
+
+        <button onclick="generateReport()"
+                class="bg-cyan-500 hover:bg-cyan-600 px-5 py-2 rounded font-bold">
+            Generate Report
+        </button>
+
+        <div id="reportBox"
+             class="mt-4 text-gray-300 text-sm whitespace-pre-line">
+        </div>
+
+    </div>
+
+    <!-- ================= SEARCH ================= -->
+    <div class="bg-slate-900 p-4 rounded-xl mb-6">
+
+        <input id="searchInput"
+               oninput="searchReports()"
+               class="w-full p-3 rounded bg-slate-800 text-white"
+               placeholder="Search reports..." />
+
+    </div>
+
+    <!-- ================= REPORT LIST ================= -->
+    <div id="reportList"
+         class="space-y-3">
+        <p class="text-gray-400">Loading reports...</p>
+    </div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+let allReports = [];
+
+/* LOAD REPORTS */
+async function loadReports() {
+    try {
+        const res = await fetch("/get-reports");
+        const data = await res.json();
+
+        allReports = data.reports || [];
+        renderReports(allReports);
+
+    } catch (err) {
+        console.log(err);
+        document.getElementById("reportList").innerHTML =
+            "<p class='text-red-500'>Failed to load reports</p>";
+    }
+}
+
+/* GENERATE REPORT */
+window.generateReport = async function () {
+
+    const topic = document.getElementById("topic").value.trim();
+    const category = document.getElementById("category").value;
+
+    if (!topic) {
+        alert("Enter topic");
+        return;
+    }
+
+    try {
+        const res = await fetch("/generate-report", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                topic: category + " - " + topic
+            })
+        });
+
+        const data = await res.json();
+
+        document.getElementById("reportBox").innerText =
+            data.report || "No response";
+
+        loadReports();
+
+    } catch (err) {
+        console.log(err);
+        alert("Server error while generating report");
+    }
+};
+
+/* RENDER */
+function renderReports(list) {
+
+    const box = document.getElementById("reportList");
+
+    if (!list || list.length === 0) {
+        box.innerHTML = "<p class='text-gray-400'>No reports found</p>";
+        return;
+    }
+
+    box.innerHTML = "";
+
+    list.forEach(r => {
+        box.innerHTML += `
+            <div class="bg-slate-800 p-4 rounded-lg shadow">
+                <h3 class="text-cyan-300 font-bold text-lg">
+                    ${r.type || "Report"}
+                </h3>
+
+                <p class="text-gray-300 text-sm mt-2">
+                    ${(r.content || "").slice(0, 150)}...
+                </p>
+            </div>
+        `;
+    });
+}
+
+/* SEARCH */
+window.searchReports = function () {
+
+    const value = document.getElementById("searchInput").value.toLowerCase();
+
+    const filtered = allReports.filter(r =>
+        (r.type || "").toLowerCase().includes(value) ||
+        (r.content || "").toLowerCase().includes(value)
+    );
+
+    renderReports(filtered);
+};
+
+/* INIT */
+window.onload = function () {
+    loadReports();
+};
+</script>
+
+</body>
+</html>

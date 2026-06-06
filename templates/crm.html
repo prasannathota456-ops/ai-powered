@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CRM Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-white">
+
+<div class="p-10 max-w-6xl mx-auto">
+
+<!-- HEADER -->
+<h1 class="text-4xl font-bold text-cyan-400 mb-8">
+CRM DASHBOARD
+</h1>
+
+<!-- STATS CARD -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+<div class="bg-slate-900 rounded-2xl p-6 shadow-lg border border-slate-800">
+<p class="text-gray-400">Total Leads</p>
+<h1 id="leadCount" class="text-4xl font-bold mt-2">0</h1>
+</div>
+
+</div>
+
+<!-- FORM -->
+<div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mb-10">
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+<input id="name" placeholder="Lead Name"
+class="p-3 rounded bg-slate-800 text-white outline-none">
+
+<input id="company" placeholder="Company"
+class="p-3 rounded bg-slate-800 text-white outline-none">
+
+<select id="status"
+class="p-3 rounded bg-slate-800 text-white">
+
+<option value="New">New</option>
+<option value="Contacted">Contacted</option>
+<option value="Closed">Closed</option>
+
+</select>
+
+<button onclick="addLead()"
+class="bg-cyan-500 hover:bg-cyan-600 transition p-3 rounded font-bold">
++ Add Lead
+</button>
+
+</div>
+</div>
+
+<!-- TABLE -->
+<div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+
+<table class="w-full text-left">
+
+<thead class="bg-slate-800 text-cyan-400">
+<tr>
+<th class="p-4">Name</th>
+<th>Company</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody id="leadTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const leadTable = document.getElementById("leadTable");
+const leadCount = document.getElementById("leadCount");
+
+/* ---------------- LOAD LEADS ---------------- */
+async function loadLeads() {
+
+const res = await fetch("/get-leads");
+const data = await res.json();
+
+leadTable.innerHTML = "";
+
+leadCount.innerText = data.leads.length;
+
+data.leads.forEach(l => {
+
+let color =
+l.status === "Closed" ? "bg-green-500" :
+l.status === "Contacted" ? "bg-yellow-500" :
+"bg-cyan-500";
+
+leadTable.innerHTML += `
+<tr class="border-b border-slate-800 hover:bg-slate-800 transition">
+
+<td class="p-4">${l.name || "-"}</td>
+<td>${l.company || "-"}</td>
+
+<td>
+<span class="px-3 py-1 text-sm rounded-full ${color} text-black font-semibold">
+${l.status}
+</span>
+</td>
+
+</tr>
+`;
+});
+
+}
+
+/* ---------------- ADD LEAD ---------------- */
+async function addLead() {
+
+const name = document.getElementById("name").value.trim();
+const company = document.getElementById("company").value.trim();
+const status = document.getElementById("status").value;
+
+if (!name || !company) {
+alert("Please fill all fields");
+return;
+}
+
+await fetch("/save-lead", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ name, company, status })
+});
+
+document.getElementById("name").value = "";
+document.getElementById("company").value = "";
+document.getElementById("status").value = "New";
+
+loadLeads();
+}
+
+loadLeads();
+
+</script>
+
+</body>
+</html>

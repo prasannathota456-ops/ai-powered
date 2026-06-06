@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-white">
+
+<nav class="p-6 text-cyan-400 text-2xl font-bold">
+AI BUSINESS DASHBOARD
+</nav>
+
+<div class="p-8">
+
+<!-- STATS -->
+<div class="grid grid-cols-4 gap-6">
+
+<div class="bg-slate-900 p-6 rounded-2xl">
+<p class="text-gray-400">Emails</p>
+<h1 id="emails" class="text-4xl font-bold">0</h1>
+</div>
+
+<div class="bg-slate-900 p-6 rounded-2xl">
+<p class="text-gray-400">Leads</p>
+<h1 id="leads" class="text-4xl font-bold">0</h1>
+</div>
+
+<div class="bg-slate-900 p-6 rounded-2xl">
+<p class="text-gray-400">Reports</p>
+<h1 id="reports" class="text-4xl font-bold">0</h1>
+</div>
+
+<div class="bg-slate-900 p-6 rounded-2xl">
+<p class="text-gray-400">AI Chats</p>
+<h1 id="chats" class="text-4xl font-bold">0</h1>
+</div>
+
+</div>
+
+<!-- MODULES -->
+<div class="grid grid-cols-2 gap-6 mt-10">
+
+<a href="/crm" class="p-6 bg-slate-900 rounded-xl hover:bg-slate-800">
+CRM
+</a>
+
+<a href="/email-ai" class="p-6 bg-slate-900 rounded-xl hover:bg-slate-800">
+EMAIL AI
+</a>
+
+<a href="/reports" class="p-6 bg-slate-900 rounded-xl hover:bg-slate-800">
+REPORTS
+</a>
+
+<a href="/ai-chat" class="p-6 bg-slate-900 rounded-xl hover:bg-slate-800">
+AI CHAT
+</a>
+
+</div>
+
+</div>
+
+<script>
+async function loadStats(){
+const res = await fetch("/stats");
+const data = await res.json();
+
+emails.innerText = data.emails;
+leads.innerText = data.leads;
+reports.innerText = data.reports;
+chats.innerText = data.chats;
+}
+
+loadStats();
+setInterval(loadStats, 2000);
+</script>
+
+</body>
+</html>

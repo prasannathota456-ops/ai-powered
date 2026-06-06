@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Email AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-white">
+
+<div class="max-w-4xl mx-auto p-10">
+
+<!-- HEADER -->
+<h1 class="text-4xl font-bold text-cyan-400 mb-2">
+Email AI Assistant
+</h1>
+
+<p class="text-gray-400 mb-8">
+Generate professional business emails instantly using AI
+</p>
+
+<!-- INPUT CARD -->
+<div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-lg">
+
+<label class="text-sm text-gray-400">Enter your prompt</label>
+
+<textarea
+id="prompt"
+rows="4"
+placeholder="Example: Write a follow-up email to a client after meeting..."
+class="w-full mt-3 p-4 rounded bg-slate-800 text-white outline-none focus:ring-2 focus:ring-cyan-500"
+></textarea>
+
+<button onclick="generateEmail()"
+class="mt-4 bg-cyan-500 hover:bg-cyan-600 transition px-6 py-3 rounded font-bold">
+Generate Email
+</button>
+
+</div>
+
+<!-- LOADING -->
+<p id="loading" class="text-cyan-400 mt-4 hidden animate-pulse">
+Generating email, please wait...
+</p>
+
+<!-- OUTPUT CARD -->
+<div class="mt-8 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+
+<div class="flex justify-between items-center mb-3">
+
+<h2 class="text-lg font-bold">Generated Email</h2>
+
+<button onclick="copyEmail()"
+class="text-sm bg-slate-800 px-3 py-1 rounded hover:bg-slate-700">
+Copy
+</button>
+
+</div>
+
+<pre id="output"
+class="whitespace-pre-wrap text-gray-300 min-h-[120px]">
+Your AI generated email will appear here...
+</pre>
+
+</div>
+
+</div>
+
+<script>
+
+const promptBox = document.getElementById("prompt");
+const output = document.getElementById("output");
+const loading = document.getElementById("loading");
+
+/* ---------------- GENERATE EMAIL ---------------- */
+async function generateEmail() {
+
+const prompt = promptBox.value.trim();
+
+if (!prompt) {
+alert("Please enter a prompt");
+return;
+}
+
+loading.classList.remove("hidden");
+output.innerText = "Generating...";
+
+try {
+
+const res = await fetch("/generate-email", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({ prompt })
+});
+
+const data = await res.json();
+
+output.innerText = data.email || "No response from AI";
+
+} catch (error) {
+
+output.innerText = "Error generating email. Please try again.";
+
+}
+
+loading.classList.add("hidden");
+}
+
+/* ---------------- COPY EMAIL ---------------- */
+function copyEmail() {
+
+navigator.clipboard.writeText(output.innerText);
+alert("Email copied successfully!");
+
+}
+
+</script>
+
+</body>
+</html>
